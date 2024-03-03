@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { Puzzle } = require("./model.js");
-const https = require("https");
+const https = require("express-sslify");
 
 
 

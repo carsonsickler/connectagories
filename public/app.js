@@ -1,4 +1,4 @@
-const api = "https://connectagories.onrender.com:8080";
+//const api = "https://connectagories.onrender.com:8080";
 
 
 Vue.createApp({
@@ -41,7 +41,7 @@ Vue.createApp({
       this.deleting = true;
     },
     getPuzzles() {
-      fetch(api + "/puzzles").then(response => response.json()).then(data => {
+      fetch("/puzzles").then(response => response.json()).then(data => {
         this.puzzles = data;
       }).catch(err => console.log(err));
     },
@@ -77,7 +77,7 @@ Vue.createApp({
         return;
       }
       console.log(password);
-      fetch(api + "/puzzles/" + _id, {
+      fetch("/puzzles/" + _id, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -116,7 +116,7 @@ Vue.createApp({
         newPuzzle.board[`category${i+1}`] = {title: this.categories[i], word1: this.words[i][0], word2: this.words[i][1], word3: this.words[i][2], word4: this.words[i][3]};
       }
       console.log(newPuzzle);
-      fetch(api + "/puzzles", {
+      fetch("/puzzles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -170,7 +170,7 @@ Vue.createApp({
         this.pleaseChooseFour();
         return;
       }
-      fetch(`${api}/puzzles/guess/${this.currentPuzzle._id}`, {
+      fetch(`/puzzles/guess/${this.currentPuzzle._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

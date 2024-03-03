@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const { Puzzle } = require("./model.js");
-const https = require("express-sslify");
 
 
 
@@ -11,7 +10,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(https.enforce.HTTPS({ trustProtoHeader: true }));
 app.use(express.static("public"));
 
 app.get("/puzzles", async (req, res) => {

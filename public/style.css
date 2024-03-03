@@ -682,3 +682,17 @@ li#category4 {
   50% { transform: translateX(-35px); }
   100% { transform: translateX(35px); }
 }
+
+
+
+@media (max-width: 768px) {
+
+#app {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+}

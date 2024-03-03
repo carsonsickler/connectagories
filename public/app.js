@@ -210,6 +210,9 @@ Vue.createApp({
               if (category === '_id') continue;
               let title = this.currentPuzzle.board[category].title;
               let wordsInCategory = Object.values(this.currentPuzzle.board[category]).filter(word => typeof word === "string");
+              //remove first and last words of wordsinCategory
+              wordsInCategory.pop();
+              wordsInCategory.shift();
               this.solvedCategories[title] = wordsInCategory;
             }
           }

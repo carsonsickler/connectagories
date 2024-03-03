@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue App</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  </head>
+
+  <body>
+    <div id="app" v-bind:style="body">
+      <div id="sidebar">
+        <h1>
+          <span>C</span>
+          <span>O</span>
+          <span>N</span>
+          <span>N</span>
+          <span>E</span>
+          <span>C</span>
+          <span>T</span>
+          <span>A</span>
+          <span>G</span>
+          <span>O</span>
+          <span>R</span>
+          <span>I</span>
+          <span>E</span>
+          <span>S</span>
+        </h1>
+        <button :class="{ active: page === 'home'}" @click="page = 'home', clearAll()">Home</button>
+        <button :class="{ active: page === 'create'}" @click="page = 'create', clearAll()">Create</button>
+      </div>
+
+      <!-- HOME PAGE -->
+      <div v-show="page === 'home'" id="home">
+        <div v-if="deleting" id="passwordEntry">
+          <div id="deleteWrapper">
+            <h2 v-if="noPassword">Please enter a password</h2>
+            <p @click="deleting = false">X</p>
+            <h2>Please enter the password to delete puzzles.</h2>
+            <input type="password" v-model="password" />
+            <button @click="deletePuzzle(puzzleId)">DELETE</button>
+          </div>
+        </div>
+        <h1>Puzzles</h1>
+        <div id="tableTags">
+          <h2>Title</h2>
+          <h2>Author</h2>
+          <h2>Controls</h2>
+        </div>
+        <div id="homePuzzles">
+          <ul>
+            <li v-for="puzzle in puzzles">
+              <h2>{{puzzle.title}}</h2>
+              <h2>Author: {{puzzle.author}}</h2>
+              <span id="gameButtons">
+                <button @click="startGame(puzzle._id)">play</button>
+                <button @click="setPuzzleId(puzzle._id)">delete</button>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CREATE PAGE -->
+      <div v-show="page === 'create'" id="create">
+        <h1>Create Game</h1>
+        <form id="createGame">
+          <div id="info">
+            <div id="title">
+              <h3>Title:</h3>
+              <input type="text" v-model="title" placeholder="Title" />
+            </div>
+            <div id="author">
+              <h3>Author:</h3>
+              <input type="text" v-model="author" placeholder="Author" />
+            </div>
+          </div>
+          <p v-if="boxEmpty">Please fill in all the boxes</p>
+          <ul class="categoriesForm">
+            <li v-for="i in 4" :key="i" :id="'category' + i" class="category-row">
+              <div :id="'category' + i + 'title'" class="category-title">
+                <button @click.prevent="clearCategory(i - 1)">Clear</button>
+                <input
+                  type="text"
+                  v-model="categories[i - 1]"
+                  :placeholder="'Category ' + i"
+                />
+              </div>
+              <ul>
+                <div :id="'words' + i" class="words-container">
+                  <li v-for="(word, index) in words[i - 1]" :key="index">
+                    <input
+                      type="text"
+                      v-model="words[i - 1][index]"
+                      :placeholder="'Word ' + (index + 1)"
+                    />
+                  </li>
+                </div>
+              </ul>
+            </li>
+          </ul>
+          <div id="controls">
+            <button @click.prevent="clearAll">Clear All</button>
+            <button @click.prevent="isFormComplete">Submit</button>
+          </div>
+        </form>
+
+        <!-- PREVIEW -->
+        <div v-if="preview" id="preview">
+          <div id="preview-background">
+            <h3>Preview</h3>
+            <h2>{{title}}</h2>
+            <p>by: {{author}}</p>
+            <ul class="words-preview">
+              <li v-for="(category, index) in categories" :key="index">
+                <ul v-for="(word, index) in words[index]" :key="index">
+                  <li>
+                    <p>{{word}}</p>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="revealed-puzzle">
+              <li v-for="(category, index) in categories" :key="index" class="category-row">
+                <h3 class="revealed-category">{{category}}</h3>
+                <ul class="revealed-words">
+                    <li v-for="(word, index) in words[index]" :key="index">
+                      <p class="revealed-word">{{word}}</p>
+                    </li>
+                </ul>
+              </li>
+            </ul>
+            <div id="controls">
+              <button @click="preview = false">Cancel</button>
+              <button @click="createGame">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAY PAGE -->
+      <div v-if="page === 'play'" id="play">
+        <h1>{{title}}</h1>
+        <h2>by: {{author}}</h2>
+        <p v-if="choose4" class="message" id="message1">Please choose 4 words</p>
+        <p v-if="tryAgain" class="message" id="message2">Try Again</p>
+        <p v-if="win">You Win!</p>
+        <p v-if="lose">You Lose! Try a different puzzle.</p>
+        <div id="board">
+          <ul class="solved">
+            <li v-for="(words, category) in solvedCategories" :key="category">
+              <h3>{{category}}</h3>
+              <ul>
+                <li v-for="word in words" :key="word">
+                  <p>{{word}}</p>
+              </ul>
+          </ul>
+          <ul id="playBoard">
+            <li v-for="(word, index) in words" :key="index" :class="{ selected: isSelected(index) }" @click="toggleSelection(index)">
+              <p>{{word}}</p>
+          </ul>
+        </div>
+        <div id="lives">
+          <h3>Lives:</h3>
+          <ul id="hearts">
+            <li v-for="i in lives" :key="i">
+              <img src="assets/heart.png" alt="heart" id="heartImg"/>
+          </ul>
+        </div>
+        <div id="controls">
+          <button @click="shuffle">Shuffle</button>
+          <button @click="deselectAll">Deselect All</button>
+          <button @click="checkGuess">Check</button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

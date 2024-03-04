@@ -114,3 +114,6 @@ node index.js
 ```
 
 The server will start running on port 8080, and you can access the API using the provided endpoints.
+
+### URL
+connectagories.onrender.com

@@ -48,6 +48,7 @@ Vue.createApp({
 
     //Home page
     startGame(_id) {
+      this.lives = 4;
       this.body = {backgroundColor: 'white'};
       this.categories = [];
       this.words = [];
@@ -124,6 +125,8 @@ Vue.createApp({
       this.words = Array(4).fill().map(() => (Array(4).fill('')));
       this.solvedCategories = {};
       this.body = {backgroundColor: 'black'};
+      this.selectedWords = [];
+      this.win = false;
     },
     updateGame() {
       let updatedPuzzle = {}

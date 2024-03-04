@@ -138,6 +138,7 @@ app.put("/puzzles/:id", async function (req, res) {
 app.delete("/puzzles/:id", async function (req, res) {
     let puzzleId = req.params.id;
     let password;
+    console.log(req.body.password);
     try {
         password = req.body.password;
     } catch (err) {

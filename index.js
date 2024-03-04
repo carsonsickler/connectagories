@@ -109,6 +109,32 @@ app.put("/puzzles/guess/:id", async function (req, res) {
 
 })
 
+app.put("/puzzles/:id", async function (req, res) {
+    //update puzzle
+    console.log("Updating puzzle")
+    let puzzleId = req.params.id;
+    let puzzle = await Puzzle.findById(puzzleId);
+    if (!puzzle) {
+        return res.status(404).send("Puzzle not found");
+    }
+    let updatedPuzzle = req.body;
+    puzzle.title = updatedPuzzle.title;
+    puzzle.author = updatedPuzzle.author;
+    puzzle.board = updatedPuzzle.board;
+    puzzle.save().then(() => {
+        res.status(200).send("Puzzle updated");
+    }).catch((err) => {
+        let errorMessage = {};
+        if (err.errors) {
+            errorMessage.details = {};
+            Object.keys(err.errors).forEach((key) => {
+                errorMessage.details[key] = err.errors[key].message;
+            });
+            res.status(422).json(errorMessage);
+        }
+    })
+});
+
 app.delete("/puzzles/:id", async function (req, res) {
     let puzzleId = req.params.id;
     let password;

@@ -56,6 +56,7 @@
               <h2>Author: {{puzzle.author}}</h2>
               <span id="gameButtons">
                 <button @click="startGame(puzzle._id)">play</button>
+                <button @click="editPuzzle(puzzle._id)">edit</button>
                 <button @click="setPuzzleId(puzzle._id)">delete</button>
               </span>
             </li>
@@ -135,6 +136,81 @@
             <div id="controls">
               <button @click="preview = false">Cancel</button>
               <button @click="createGame">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-show="page === 'edit'" id="create">
+        <h1>Edit {{title}}</h1>
+        <form id="createGame">
+          <div id="info">
+            <div id="title">
+              <h3>Title:</h3>
+              <input type="text" v-model="title" placeholder="Title" />
+            </div>
+            <div id="author">
+              <h3>Author:</h3>
+              <input type="text" v-model="author" placeholder="Author" />
+            </div>
+          </div>
+          <p v-if="boxEmpty">Please fill in all the boxes</p>
+          <ul class="categoriesForm">
+            <li v-for="i in 4" :key="i" :id="'category' + i" class="category-row">
+              <div :id="'category' + i + 'title'" class="category-title">
+                <button @click.prevent="clearCategory(i - 1)">Clear</button>
+                <input
+                  type="text"
+                  v-model="categories[i - 1]"
+                  :placeholder="'Category ' + i"
+                />
+              </div>
+              <ul>
+                <div :id="'words' + i" class="words-container">
+                  <li v-for="(word,index) in words" :key="index">
+                    <input
+                      type="text"
+                      v-model="words[i-1][index]"
+                    />
+                  </li>
+                </div>
+              </ul>
+            </li>
+          </ul>
+          <div id="controls">
+            <button @click.prevent="clearAll">Clear All</button>
+            <button @click.prevent="isFormComplete">Update</button>
+          </div>
+        </form>
+
+        <!-- PREVIEW -->
+        <div v-if="preview" id="preview">
+          <div id="preview-background">
+            <h3>Updated board</h3>
+            <h2>{{title}}</h2>
+            <p>by: {{author}}</p>
+            <ul class="words-preview">
+              <li v-for="(category, index) in categories" :key="index">
+                <ul v-for="(word, index) in words[index]" :key="index">
+                  <li>
+                    <p>{{word}}</p>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="revealed-puzzle">
+              <li v-for="(category, index) in categories" :key="index" class="category-row">
+                <h3 class="revealed-category">{{category}}</h3>
+                <ul class="revealed-words">
+                    <li v-for="(word, index) in words[index]" :key="index">
+                      <p class="revealed-word">{{word}}</p>
+                    </li>
+                </ul>
+              </li>
+            </ul>
+            <div id="controls">
+              <button @click="preview = false">Cancel</button>
+              <button @click="updateGame">Confirm</button>
             </div>
           </div>
         </div>

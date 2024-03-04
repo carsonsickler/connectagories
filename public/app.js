@@ -1,4 +1,4 @@
-//const api = "https://connectagories.onrender.com:8080";
+//const api = "http://localhost:8080";
 
 
 Vue.createApp({
@@ -92,6 +92,24 @@ Vue.createApp({
     },
     
     //Create page
+    editPuzzle(_id) {
+      this.page = "edit";
+      this.categories = [];
+      this.words = [];
+      this.currentPuzzle = this.puzzles.find(puzzle => puzzle._id === _id);
+      this.title = this.currentPuzzle.title;
+      this.author = this.currentPuzzle.author;
+      for (let category in this.currentPuzzle.board) {
+        if (category === '_id') continue;
+        this.categories.push(this.currentPuzzle.board[category].title);
+      }
+      for (let category in this.currentPuzzle.board) {
+        if (category === '_id') continue;
+        this.words.push([this.currentPuzzle.board[category].word1, this.currentPuzzle.board[category].word2, this.currentPuzzle.board[category].word3, this.currentPuzzle.board[category].word4]);
+      }
+
+      console.log(this.words);
+    },
     clearCategory(i) {
       this.categories[i] = '';
       for (let j = 0; j < 4; j++) {
@@ -106,6 +124,29 @@ Vue.createApp({
       this.words = Array(4).fill().map(() => (Array(4).fill('')));
       this.solvedCategories = {};
       this.body = {backgroundColor: 'black'};
+    },
+    updateGame() {
+      let updatedPuzzle = {}
+      updatedPuzzle.title = this.title;
+      updatedPuzzle.author = this.author;
+      updatedPuzzle.board = {};
+      for (let i = 0; i < 4; i++) {
+        updatedPuzzle.board[`category${i+1}`] = {title: this.categories[i], word1: this.words[i][0], word2: this.words[i][1], word3: this.words[i][2], word4: this.words[i][3]};
+      }
+      console.log(updatedPuzzle);
+      fetch("/puzzles/" + this.currentPuzzle._id, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedPuzzle),
+      }).then(response => {
+        console.log(response);
+        this.getPuzzles();
+      }).catch(err => console.log(err));
+      this.clearAll();
+      this.preview = false;
+      this.page = "home";
     },
     createGame() {
       let newPuzzle = {}
@@ -131,6 +172,7 @@ Vue.createApp({
       this.preview = false;
     },
     isFormComplete() {
+      console.log(this.title, this.author, this.categories, this.words);
       let complete = this.title && this.author && this.categories.every(category => category) && this.words.every(category => category.every(word => word));
       if (!complete) {
         this.boxEmpty = true;

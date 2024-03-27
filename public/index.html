@@ -30,7 +30,29 @@
         </h1>
         <button :class="{ active: page === 'home'}" @click="page = 'home', clearAll()">Home</button>
         <button :class="{ active: page === 'create'}" @click="page = 'create', clearAll()">Create</button>
+        <button :class="{ active: page === 'login'}" @click="page = 'login'">Login</button>
       </div>
+
+      <!-- LOGIN PAGE -->
+      <div v-show="page === 'login'" id="login">
+        <h1>Login</h1>
+        <form id="loginForm">
+          <input type="email" v-model="email" placeholder="email" />
+          <input type="password" v-model="password" placeholder="Password" />
+          <button @click.prevent="login">Login</button>
+        </form>
+      </div>
+
+      <!-- SIGN UP PAGE -->
+      <div v-show="page === 'signup'" id="signup">
+        <h1>Sign Up</h1>
+        <form id="signupForm">
+          <input type="text" v-model="firstName" placeholder="First Name" />
+          <input type="text" v-model="lastName" placeholder="Last Name" />
+          <input type="email" v-model="email" placeholder="email" />
+          <input type="password" v-model="password" placeholder="Password" />
+          <button @click.prevent="signup">Sign Up</button>
+        </form>
 
       <!-- HOME PAGE -->
       <div v-show="page === 'home'" id="home">

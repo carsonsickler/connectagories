@@ -1,11 +1,16 @@
 //const api = "http://localhost:8080";
-
+// cors
+// credentials: 'include' on all fetch requests
 
 Vue.createApp({
   data() {
     return {
       page: "home",
       body: {backgroundColor: 'black'},
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
       preview: false,
       choose4: false,
       tryAgain: false,
@@ -36,6 +41,31 @@ Vue.createApp({
     document.body.style.backgroundColor = this.body.backgroundColor;
   },
   methods: {
+    //Sign up
+    signUp() {
+      fetch("/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({firstName: this.firstName, lastName: this.lastName, email: this.email, password: this.password}),
+      }).then(response => {
+        console.log(response);
+      }).catch(err => console.log(err));
+    },
+    //LOGIN
+    login() {
+      fetch("/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email: this.email, password: this.password}),
+      }).then(response => {
+        console.log(response);
+      }).catch(err => console.log(err));
+    },
+
     setPuzzleId(id) {
       this.puzzleId = id;
       this.deleting = true;

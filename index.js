@@ -26,7 +26,7 @@ app.use(session({
     // don't create session until something stored
     saveUninitialized: false,
     resave: false, // don't save session if unmodified
-    cookie: { sameSite: 'None'} // secure: true, // fixes Chrome, breaks Postman
+    cookie: { secure: false } // sameSite: 'None', fixes postman breaks chrome, secure: true, // fixes Chrome, breaks Postman
 }));
 
 
@@ -34,6 +34,7 @@ app.use(session({
 // AUTHORIZATION MIDDLEWARE
 function authorizeRequest(adminOnly) {
     return function (req, res, next) {
+        console.log(req.session)
         if (req.session && req.session.user) {
             User.findOne({_id: req.session.user._id}).then(function (user) {
                 if (user && (!adminOnly || user.admin)) {
@@ -56,7 +57,6 @@ app.get("/puzzles", async (req, res) => {
         const puzzles = await Puzzle.find();
         //todo: don't send categories
         res.send(puzzles);
-        console.log(puzzles);
     } catch (err) {
         let errorMessage = {};
         if (err.errors){
@@ -158,14 +158,14 @@ app.post("/puzzles", authorizeRequest(false), function (req, res) {
 app.put("/puzzles/:id", authorizeRequest(false), async function (req, res) {
     let puzzleId = req.params.id;
     if (req.user.admin) {
-        let puzzle = await Puzzle.find({_id: puzzleId});
+        let puzzle = await Puzzle.findOne({_id: puzzleId});
         if (!puzzle) {
-            return res.status(404).send("Puzzle not found");
+            return res.status(401).send("Puzzle not found");
         }
     }
-    let puzzle = await Puzzle.find({_id: puzzleId, user: req.user._id});
+    let puzzle = await Puzzle.findOne({_id: puzzleId, user: req.user._id});
     if (!puzzle) {
-        return res.status(404).send("Puzzle not found");
+        return res.status(401).send("Puzzle not found");
     }
     let updatedPuzzle = req.body;
     puzzle.title = updatedPuzzle.title;
@@ -238,7 +238,9 @@ app.post("/users", function (req, res) {
     newUser.setEncryptedPassword(req.body.password).then(function(){
         newUser.save().then(() => {
             req.session.user = newUser;
-            res.status(201).send("New user saved!");
+            req.session.save()
+            console.log(req.session)
+            res.status(201).send(newUser);
         }).catch((err) => {
             let errorMessage = {};
             if (err.errors) {
@@ -279,20 +281,21 @@ app.post("/session", function (req, res) {
     //     if password is verified: respond with 201
     //         else: respond with 401
     //     else: respond with 401
-    const email = req.body.email;
-    User.findOne({email: email}).then(function (user) {
+    console.log("Email: " + req.body.email)
+    User.findOne({email: req.body.email}).then(function (user) {
         if (user) {
             user.verifyEncryptedPassword(req.body.password).then(function (result) {
                 if (result) {
                     // TODO: save user's ID into session using express-session
                     req.session.user = user;
-                    res.status(201).send("User authenticated");
+                    console.log(req.session);
+                    res.status(201).send(user);
                 } else {
                     res.status(401).send("Unauthorized");
                 }
             })
         } else {
-            res.status(401).send("Unauthorized");
+            res.status(402).send("Unauthorized");
         }
     })
 })

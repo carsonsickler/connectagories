@@ -139,6 +139,30 @@ h2 {
   margin-bottom: 20px;
 }
 
+/* Login/signup */
+#login, #signup, #account {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#login button, #signup button, #account button {
+  font-size: 2em;
+}
+
+#login input, #signup input {
+  font-size: 2em;
+  margin: 1em;
+}
+
+#signupForm {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 /* HOME */
 #home {
   display: flex;
@@ -165,6 +189,69 @@ h2 {
 #passwordEntry * {
   color: black;
 }
+
+#noUpdate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(146, 139, 156, 0.5);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#modalWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(146, 139, 156, 0.5);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#modalButtons {
+  display: flex;
+  justify-content: center;
+}
+
+#modalButtons button {
+  font-size: 1.5em;
+}
+
+#loginLinkModal {
+  background-color: white;
+  padding: 3em;
+  margin: 3em;
+  color: black;
+  border-radius: 10px;
+}
+
+#updateWrapper {
+  display: flex;
+  flex-flow: column;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 80%;
+}
+
+#updateWrapper * {
+  color: black;
+}
+
 
 #deleteWrapper {
   display: flex;
@@ -424,6 +511,10 @@ li#category4 {
 }
 
 #createGame > ul{
+  width: 100%;
+}
+
+#editGame > ul{
   width: 100%;
 }
 

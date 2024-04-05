@@ -1,4 +1,5 @@
-//const api = "http://localhost:8080";
+const dev = true;
+const api = dev ? "http://localhost:8080" : "";
 // cors
 // credentials: 'include' on all fetch requests
 
@@ -7,6 +8,10 @@ Vue.createApp({
     return {
       page: "home",
       body: {backgroundColor: 'black'},
+      loggedIn: false,
+      loginLinkModal: true,
+      emailExists: false,
+      userId: '',
       firstName: '',
       lastName: '',
       email: '',
@@ -19,8 +24,12 @@ Vue.createApp({
       lose: false,
       password: '',
       deleting: false,
+      deleted: false,
+      alert: false,
       noPassword: false,
+      noUpdate: false,
       puzzleId: '',
+      confirm: '',
       lives: 4,
       title: '',
       author: '',
@@ -41,29 +50,100 @@ Vue.createApp({
     document.body.style.backgroundColor = this.body.backgroundColor;
   },
   methods: {
+    clearUser() {
+      this.email = "";
+      this.password = "";
+      this.userId = "";
+      this.firstName = "";
+      this.lastName = "";
+    },
     //Sign up
     signUp() {
-      fetch("/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({firstName: this.firstName, lastName: this.lastName, email: this.email, password: this.password}),
-      }).then(response => {
-        console.log(response);
-      }).catch(err => console.log(err));
+      fetch(`${api}/users`, {
+          method: "POST",
+          credentials: 'include',
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({firstName: this.firstName, lastName: this.lastName, email: this.email, password: this.password}),
+      })
+      .then(response => {
+          if (response.status == 201){
+              this.page = "home";
+              this.loggedIn = true;
+              return response.json();
+          } else {
+              this.emailExists = true;
+              throw new Error('Email already exists');
+          }
+      })
+      .then(data => {
+        this.userId = data._id;
+      })
+      .catch(err => console.log(err));
     },
     //LOGIN
     login() {
-      fetch("/session", {
+      fetch(`${api}/session`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({email: this.email, password: this.password}),
       }).then(response => {
+        if (response.status == 201){
+          this.page = "home";
+          this.loggedIn = true;
+          this.alert = true;
+          setTimeout(() => {
+            this.alert = false;
+          }, 2000);
+          return response.json();
+        }
+        else {
+          this.clearAll();
+        }
+      })
+      .then(data => {
+        console.log(data);
+        this.userId = data._id
+        this.firstName = data.firstName;
+        this.lastName = data.lastName;
+      })
+      .catch(err => console.log(err));
+    },
+
+    logout() {
+      if (this.loggedIn == false) {
+        this.page = "home";
+        return;
+      }
+      this.getSession();
+      fetch(`${api}/session`, {
+        method: "DELETE",
+        credentials: 'include',
+      }).then(response => {
         console.log(response);
+        if (response.status == 200){
+          this.clearAll();
+          this.clearUser();
+          this.loggedIn = false;
+          this.page = "home";
+          this.alert = true;
+          setTimeout(()=> {
+            this.alert = false;
+          }, 2000)
+        }
       }).catch(err => console.log(err));
+    },
+    getSession() {
+      fetch(`${api}/session`, {
+        method: "GET",
+        credentials: "include"
+      }).then(response => response.json())
+      .then(data => console.log("Data: ", data))
+      .catch(err => console.log("Error: ", err));
     },
 
     setPuzzleId(id) {
@@ -71,9 +151,15 @@ Vue.createApp({
       this.deleting = true;
     },
     getPuzzles() {
-      fetch("/puzzles").then(response => response.json()).then(data => {
+      fetch(`${api}/puzzles`, {credentials: "include"}).then(response => response.json()).then(data => {
         this.puzzles = data;
       }).catch(err => console.log(err));
+    },
+    checkLogin() {
+      if (this.loggedIn == false) {
+        this.loginLinkModal = true;
+        this.page = "home";
+      }
     },
 
     //Home page
@@ -99,31 +185,47 @@ Vue.createApp({
       this.words = this.words.sort(() => Math.random() - 0.5);
     },
     deletePuzzle(_id) {
-      let password = this.password;
-      if (password == "") {
+      let confirm = this.confirm;
+      if (confirm != "confirm") {
         this.noPassword = true;
         setTimeout(() => {
           this.noPassword = false;
         },2000);
         return;
       }
-      console.log(password);
-      fetch("/puzzles/" + _id, {
+      fetch(`${api}/puzzles/` + _id, {
         method: "DELETE",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({password}),
         }).then(response => {
-          console.log(response);
+          if (response.status == 404){
+            console.log("404")
+            this.noDelete = true;
+            setTimeout(() => {
+              this.noDelete = false;
+              this.deleting = false;
+            }, 3000);
+          } else {
+            this.deleted = true
+            setTimeout(() => {
+              this.deleted = false;
+              this.deleting = false;
+            })
+          }
           this.getPuzzles();
         }).catch(err => console.log(err));
-      this.deleting = false;
-      this.password = '';
+      this.confirm = '';
     },
     
     //Create page
     editPuzzle(_id) {
+      if (this.loggedIn == false) {
+        this.page = "home";
+        this.loginLinkModal = true;
+        return;
+      }
       this.page = "edit";
       this.categories = [];
       this.words = [];
@@ -138,8 +240,6 @@ Vue.createApp({
         if (category === '_id') continue;
         this.words.push([this.currentPuzzle.board[category].word1, this.currentPuzzle.board[category].word2, this.currentPuzzle.board[category].word3, this.currentPuzzle.board[category].word4]);
       }
-
-      console.log(this.words);
     },
     clearCategory(i) {
       this.categories[i] = '';
@@ -157,6 +257,9 @@ Vue.createApp({
       this.body = {backgroundColor: 'black'};
       this.selectedWords = [];
       this.win = false;
+      if (this.page == "create"){
+        this.author = this.firstName + " " + this.lastName;
+      }
     },
     updateGame() {
       let updatedPuzzle = {}
@@ -167,13 +270,22 @@ Vue.createApp({
         updatedPuzzle.board[`category${i+1}`] = {title: this.categories[i], word1: this.words[i][0], word2: this.words[i][1], word3: this.words[i][2], word4: this.words[i][3]};
       }
       console.log(updatedPuzzle);
-      fetch("/puzzles/" + this.currentPuzzle._id, {
+      fetch(`${api}/puzzles/` + this.currentPuzzle._id, {
         method: "PUT",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedPuzzle),
       }).then(response => {
+        if (response.status == 401){
+          this.noUpdate = true;
+          this.alert = true;
+          setTimeout(() => {
+            this.noUpdate = false;
+            this.alert = false;
+          }, 2000)
+        }
         console.log(response);
         this.getPuzzles();
       }).catch(err => console.log(err));
@@ -190,8 +302,9 @@ Vue.createApp({
         newPuzzle.board[`category${i+1}`] = {title: this.categories[i], word1: this.words[i][0], word2: this.words[i][1], word3: this.words[i][2], word4: this.words[i][3]};
       }
       console.log(newPuzzle);
-      fetch("/puzzles", {
+      fetch(`${api}/puzzles`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
@@ -203,6 +316,7 @@ Vue.createApp({
 
       this.clearAll();
       this.preview = false;
+      this.page = "home";
     },
     isFormComplete() {
       console.log(this.title, this.author, this.categories, this.words);
@@ -245,8 +359,9 @@ Vue.createApp({
         this.pleaseChooseFour();
         return;
       }
-      fetch(`/puzzles/guess/${this.currentPuzzle._id}`, {
+      fetch(`${api}/puzzles/guess/${this.currentPuzzle._id}`, {
         method: "PUT",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },

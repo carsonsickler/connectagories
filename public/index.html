@@ -7,6 +7,7 @@
     <title>Vue App</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body>
@@ -29,8 +30,20 @@
           <span>S</span>
         </h1>
         <button :class="{ active: page === 'home'}" @click="page = 'home', clearAll()">Home</button>
-        <button :class="{ active: page === 'create'}" @click="page = 'create', clearAll()">Create</button>
-        <button :class="{ active: page === 'login'}" @click="page = 'login'">Login</button>
+        <button :class="{ active: page === 'create'}" @click="page = 'create', clearAll(),checkLogin()">Create</button>
+        <button :class="{ active: page === 'login'}" @click="page = 'account', body = {backgroundColor: 'black'}">Account</button>
+      </div>
+
+      <!-- Login link -->
+      <div v-if="loginLinkModal" id="modalWrapper">
+        <div id="loginLinkModal">
+          <h1>You must be logged in to create, edit, and delete games.</h1>
+          <div id="modalButtons">
+            <button @click="page = 'login', loginLinkModal = false">Login</button>
+            <button @click="page = 'signUp', loginLinkModal = false">Sign Up</button>
+            <button @click="loginLinkModal = false">Stay as guest</button>
+          </div>  
+        </div>
       </div>
 
       <!-- LOGIN PAGE -->
@@ -41,28 +54,51 @@
           <input type="password" v-model="password" placeholder="Password" />
           <button @click.prevent="login">Login</button>
         </form>
+        <h1>or</h1>
+        <button @click.prevent="page = 'signUp'">Sign Up</button>
       </div>
 
       <!-- SIGN UP PAGE -->
-      <div v-show="page === 'signup'" id="signup">
+      <div v-show="page === 'signUp'" id="signup">
         <h1>Sign Up</h1>
         <form id="signupForm">
           <input type="text" v-model="firstName" placeholder="First Name" />
           <input type="text" v-model="lastName" placeholder="Last Name" />
           <input type="email" v-model="email" placeholder="email" />
           <input type="password" v-model="password" placeholder="Password" />
-          <button @click.prevent="signup">Sign Up</button>
+          <p v-if="emailExists">Account with that email already exists.</p>
+          <button @click.prevent="signUp">Sign Up</button>
         </form>
+        <h1>or</h1>
+        <button @click.prevent="page = 'login'">Login</button>
+      </div>
+
+      <div v-show="page === 'account'" id="account">
+        <h1>Account</h1>
+        <p>Name: {{firstName + " " + lastName}}</p>
+        <button @click="page = 'home'">Back</button>
+        <button @click="logout">Logout</button>
+      </div>
 
       <!-- HOME PAGE -->
       <div v-show="page === 'home'" id="home">
         <div v-if="deleting" id="passwordEntry">
           <div id="deleteWrapper">
-            <h2 v-if="noPassword">Please enter a password</h2>
+            <h2 v-if="noPassword">Please type confirm, all lowercase</h2>
             <p @click="deleting = false">X</p>
-            <h2>Please enter the password to delete puzzles.</h2>
-            <input type="password" v-model="password" />
+            <h2>Are you sure you want to delete this puzzle?</h2>
+            <p>Type confirm in lowercase to delete</p>
+            <input type="text" v-model="confirm" />
             <button @click="deletePuzzle(puzzleId)">DELETE</button>
+            <h2 v-if="deleted">Puzzle has been deleted.</h2>
+            <h2 v-if="noDelete">Could not delete puzzle, user not authorized.</h2>
+          </div>
+        </div>
+        <div v-if="alert" id="noUpdate">
+          <div id="updateWrapper">
+            <h2 v-if="noUpdate">Could not update puzzle, not authorized.</h2>
+            <h2 v-if="loggedIn">Successfully logged in!</h2>
+            <h2 v-if="!loggedIn">Successfully logged out!</h2>
           </div>
         </div>
         <h1>Puzzles</h1>
@@ -165,7 +201,7 @@
 
       <div v-show="page === 'edit'" id="create">
         <h1>Edit {{title}}</h1>
-        <form id="createGame">
+        <form id="editGame">
           <div id="info">
             <div id="title">
               <h3>Title:</h3>

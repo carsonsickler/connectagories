@@ -1,5 +1,5 @@
 const dev = true;
-const api = dev ? "http://localhost:8080" : "";
+const api = "";
 // cors
 // credentials: 'include' on all fetch requests
 
